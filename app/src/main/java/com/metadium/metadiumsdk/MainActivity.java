@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(ServiceResult<RemoveKeyData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
-                    showToast("MetaId:"+result.getResult().getMetaId()+"\nRemovedKey:"+result.getResult().getTransactionId());
+                    showToast("MetaId:"+result.getResult().getMetaId()+"\ntransactinId:"+result.getResult().getTransactionId());
                 }
                 else {
                     showErrorToast(result.getError());
