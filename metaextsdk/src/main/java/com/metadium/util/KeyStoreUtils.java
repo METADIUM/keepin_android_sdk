@@ -9,7 +9,6 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -385,19 +384,6 @@ public class KeyStoreUtils {
     }
 
     /**
-     * signing data with input crypto object
-     * @param cryptoObject crypto object of signature
-     * @param message      message to sign
-     * @return signed message
-     * @throws Exception cipher exception
-     */
-    public static byte[] signatureSHA256WithRSA(FingerprintManagerCompat.CryptoObject cryptoObject, byte[] message) throws Exception {
-        Signature sig = cryptoObject.getSignature();
-        sig.update(message);
-        return sig.sign();
-    }
-
-    /**
      * verify signed data to SHA256WithRSA
      * @param alias     alias of keystore entry
      * @param signature signed data
@@ -409,20 +395,6 @@ public class KeyStoreUtils {
         Signature sig = Signature.getInstance("SHA256WithRSA");
         sig.update(message);
         sig.initVerify(((KeyStore.PrivateKeyEntry)getKeyStoreEntry(alias)).getCertificate().getPublicKey());
-        return sig.verify(signature);
-    }
-
-    /**
-     * verify signed data to SHA256WithRSA
-     * @param cryptoObject crypto object of signature
-     * @param signature    signed data
-     * @param message      message
-     * @return verify result
-     * @throws Exception cipher exception
-     */
-    public static boolean verifySHA256WithRSA(FingerprintManagerCompat.CryptoObject cryptoObject, byte[] signature, byte[] message) throws Exception {
-        Signature sig = cryptoObject.getSignature();
-        sig.update(message);
         return sig.verify(signature);
     }
 
