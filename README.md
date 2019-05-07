@@ -55,6 +55,7 @@ try {
 
 ### Keepin 앱이 키를 생성하고 관리 시
 ###### 키 등록
+키 등록 요청 시 Meta ID 가 생성되어 있지 않으면 Meta ID 생성 화면으로 이동하며 이후 서비스 키 등록 화면 노출
 
 ```
 keepinSDK.sdk.registerKey("nonce", new Callback<RegisterKeyData>() {
@@ -68,13 +69,53 @@ keepinSDK.sdk.registerKey("nonce", new Callback<RegisterKeyData>() {
             // TODO 해당 서비스 서버에 metaId, signature 를 전송하여 사용자 계정과 연결
         } else {
             // error to register
+
+            if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_CREATE_META_ID) {
+                // Meta ID 가 생성하지 않음
+            }
+            else if (result.getResult().getError().getCode() == ServiceResult.Error.ERROR_CODE_UN_LINKED_SERVICE) {
+                // Service 등록을 하지 않음
+            }
+
         }
     }
 });
 ```
 ###### 서명 요청
+Meta ID 가 생성되어 있지 않으면 Meta ID 생성 및 서비스 키 등록 화면 노출<br>
+서비스 키가 등록되어 있지 않으면 서비스 키 등록화면 노출<br>
+서비스 키가 등록되어 있으면 인증화면 노출
+
 ```
-keepinSDK.sign(getNonce(), new Callback<SignData>() {
+// 등록되어 있는 키가 존재하지 않으면 자동 생성
+keepinSDK.sign(getNonce(), true, new Callback<SignData>() {
+    @Override
+    public void onResult(ServiceResult<SignData> result) {
+        if (result.isSuccess()) {
+            String metaId = result.getResult().getMetaId(); // user Meta ID
+            String signature = result.getResult().getSignature(); // signed message(nonce)
+            String transactionId = result.getResult.getTransactionId();
+
+            if (transactionId != null) {
+                //  서비스 키가 새로 등록되었음
+            }
+
+            // TODO 해당 서비스 서버에 metaId, signature 를 전송하여 인증
+        }
+        else {
+            // error to sign
+            if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_CREATE_META_ID) {
+                // Meta ID 가 생성하지 않음
+            }
+            else if (result.getResult().getError().getCode() == ServiceResult.Error.ERROR_CODE_UN_LINKED_SERVICE) {
+                // Service 등록을 하지 않음
+            }
+        }
+    }
+});
+
+// 기존에 등록되어 키로만 서명 요청
+keepinSDK.sign(getNonce(), false, new Callback<SignData>() {
     @Override
     public void onResult(ServiceResult<SignData> result) {
         if (result.isSuccess()) {
@@ -85,9 +126,16 @@ keepinSDK.sign(getNonce(), new Callback<SignData>() {
         }
         else {
             // error to sign
+            if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_CREATE_META_ID) {
+                // Meta ID 가 생성되어 있지 않음.
+            }
+            else if (result.getResult().getError().getCode() == ServiceResult.Error.ERROR_CODE_UN_LINKED_SERVICE) {
+                // Service 가 등록되어 있지 않음.
+            }
         }
     }
 });
+
 ```
 ###### 키 삭제
 ```
@@ -97,6 +145,7 @@ keepinSDK.removeKey(metaId, new Callback<RemoveKeyData>() {
         if (result.isSuccess()) {
             String metaId = result.getResult().getMetaId(); // user Meta ID
             String transactionId = result.getResult().getTransactionId(); // 키를 등록한 transaction hash
+
             // TODO 해당 서비스 서버에 metaId 를 전송하여 사용자 계정에서 삭제
         }
         else {
