@@ -3,10 +3,17 @@ package com.metadium;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metadium.handler.RemoveKeyHandler;
-import com.metadium.result.*;
+import com.metadium.result.Callback;
+import com.metadium.result.RegisterKeyData;
+import com.metadium.result.RemoveKeyData;
+import com.metadium.result.ServiceResult;
+import com.metadium.result.SignData;
 import com.metadium.util.SecureFileUtils;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
@@ -17,6 +24,8 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.Provider;
+import java.security.Security;
 
 /**
  * Extended Keepin SDK<br/>
@@ -32,6 +41,14 @@ import java.security.NoSuchProviderException;
 public class KeepinExtSDK extends KeepinSDK {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String WALLET_FILE_NAME = "keepin_asist.json";
+
+    static {
+        final Provider provider = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+        if (provider != null && !provider.getClass().equals(BouncyCastleProvider.class)) {
+            Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+            Security.insertProviderAt(new BouncyCastleProvider(), 1);
+        }
+    }
 
     /**
      * Constructor<br/>

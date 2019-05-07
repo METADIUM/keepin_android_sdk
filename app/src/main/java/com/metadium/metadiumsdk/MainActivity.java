@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
 
+import com.metadium.KeepinExtSDK;
 import com.metadium.KeepinSDK;
 import com.metadium.NotInstalledKeepinException;
 import com.metadium.result.Callback;
@@ -46,6 +47,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void onClickExternalRegister(View view) {
+        try {
+            KeepinExtSDK keepinExtSDK = new KeepinExtSDK(this);
+
+            keepinExtSDK.exportGeneratedKey("", new Callback<RegisterKeyData>() {
+                @Override
+                public void onResult(ServiceResult<RegisterKeyData> result) {
+                    if (result.isSuccess()) {
+                        metaId = result.getResult().getMetaId();
+                        showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+                    }
+                    else {
+                        showErrorToast(result.getError());
+                    }
+                }
+            });
+        }
+        catch (Exception e) {
+            showToast(e.getLocalizedMessage());
+        }
     }
 
     public void onClickSign(View view) {
