@@ -13,7 +13,7 @@ repositories {
 앱 `build.gradle` 파일에 dependency 를 추가
 ```
 dependencies {
-    implementation 'com.github.YoungBaeJeon.metadium_android_sdk:metasdk:0.1'
+    implementation 'com.github.YoungBaeJeon.metadium_android_sdk:metasdk:0.2'
 }
 ```
 
