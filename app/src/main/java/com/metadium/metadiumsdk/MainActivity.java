@@ -72,7 +72,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSign(View view) {
-        sdk.sign(getNonce(), new Callback<SignData>() {
+        sdk.sign(getNonce(), false, new Callback<SignData>() {
+            @Override
+            public void onResult(ServiceResult<SignData> result) {
+                if (result.isSuccess()) {
+                    metaId = result.getResult().getMetaId();
+                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+                }
+                else {
+                    showErrorToast(result.getError());
+                }
+            }
+        });
+    }
+
+    public void onClickSignAndRegister(View view) {
+        sdk.sign(getNonce(), true, new Callback<SignData>() {
             @Override
             public void onResult(ServiceResult<SignData> result) {
                 if (result.isSuccess()) {

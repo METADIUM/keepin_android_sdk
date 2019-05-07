@@ -30,6 +30,16 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Sign and register"
+        android:textAllCaps="false"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:onClick="onClickSignAndRegister"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="Remove key"
         android:textAllCaps="false"
         android:textColor="@android:color/black"

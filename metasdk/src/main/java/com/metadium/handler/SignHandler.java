@@ -15,6 +15,7 @@ import com.metadium.result.SignData;
  */
 public class SignHandler extends ServiceMethodHandler<SignData> {
     private String message;
+    private boolean autoRegister;
 
     /**
      * Constructor
@@ -23,9 +24,14 @@ public class SignHandler extends ServiceMethodHandler<SignData> {
      * @param message   message to sign
      * @param callback  callback to response data
      */
-    public SignHandler(Context context, String serviceId, String message, Callback<SignData> callback) {
+    public SignHandler(Context context, String serviceId, String message, boolean autoRegister, Callback<SignData> callback) {
         super(context, serviceId, callback);
         this.message = message;
+        this.autoRegister = autoRegister;
+    }
+
+    public SignHandler(Context context, String serviceId, String message, Callback<SignData> callback) {
+        this(context, serviceId, message, false, callback);
     }
 
     @Override
@@ -35,6 +41,6 @@ public class SignHandler extends ServiceMethodHandler<SignData> {
 
     @Override
     protected void send(IKeepinService keepinService, ResultReceiver resultReceiver) throws RemoteException {
-        keepinService.requestSign(serviceId, message, resultReceiver);
+        keepinService.requestSign(serviceId, message, autoRegister, resultReceiver);
     }
 }

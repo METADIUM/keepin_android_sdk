@@ -129,11 +129,12 @@ public class KeepinSDK {
 
     /**
      * Request keepin app to sign with a key for the service.
-     * @param nonce    message to sign
+     * @param nonce        message to sign
+     * @param autoRegister if need register key, add key
      * @param callback Response callback to request
      */
-    public void sign(String nonce, Callback<SignData> callback) {
-        new SignHandler(context, serviceId, nonce, callback).request();
+    public void sign(String nonce, boolean autoRegister, Callback<SignData> callback) {
+        new SignHandler(context, serviceId, nonce, autoRegister, callback).request();
     }
 
     /**
