@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(ServiceResult<SignData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
-                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature());
+                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
                 }
                 else {
                     showErrorToast(result.getError());

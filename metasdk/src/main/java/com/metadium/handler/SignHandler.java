@@ -30,7 +30,7 @@ public class SignHandler extends ServiceMethodHandler<SignData> {
 
     @Override
     protected ServiceResult<SignData> getData(Bundle resultData) {
-        return new ServiceResult<>(new SignData(resultData.getString(RESULT_PARAM_META_ID), resultData.getString(RESULT_PARAM_SIGNATURE)));
+        return new ServiceResult<>(new SignData(resultData.getString(RESULT_PARAM_META_ID), resultData.getString(RESULT_PARAM_SIGNATURE), resultData.getString(RESULT_PARAM_TRANSACTION_ID)));
     }
 
     @Override
