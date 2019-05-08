@@ -34,7 +34,8 @@ dependencies {
 ```
 
 # Usage
-`AndroidManifest.xml` 에 meta-data 로 service-id 설정
+`AndroidManifest.xml` 에 meta-data 로 service-id 설정<br>
+service-id 는 Metadium 발급합니다.
 ```
 <application>
         <meta-data
@@ -158,7 +159,7 @@ keepinSDK.removeKey(metaId, new Callback<RemoveKeyData>() {
 # Server side 에서의 인증 처리
 ###### Java
 [Web3j](https://github.com/web3j/web3j#getting-started) 추가<br>
-Import [MetaIdentity](https://github.com/YoungBaeJeon/meta_android_sdk/blob/master/contract/MetaIdentity.java)
+Import [MetaIdentity](https://github.com/YoungBaeJeon/metadium_android_sdk/master/contract/MetaIdentity.java)
 ```
 public static String signatureDataToString(Sign.SignatureData signatureData) {
     ByteBuffer buffer = ByteBuffer.allocate(65);
