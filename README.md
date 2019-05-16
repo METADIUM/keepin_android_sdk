@@ -60,26 +60,26 @@ try {
 
 ```
 keepinSDK.sdk.registerKey("nonce", new Callback<RegisterKeyData>() {
-    @Override
-    public void onResult(ServiceResult<RegisterKeyData> result) {
-        if (result.isSuccess()) {
-            String metaId = result.getResult().getMetaId(); // user Meta ID
-            String signature = result.getResult().getSignature(); // signed message(nonce)
-            String transactionId = result.getResult().getTransactionId(); // 키를 등록한 transaction hash
+   @Override
+   public void onResult(ServiceResult<RegisterKeyData> result) {
+       if (result.isSuccess()) {
+           String metaId = result.getResult().getMetaId(); // user Meta ID
+           String signature = result.getResult().getSignature(); // signed message(nonce)
+           String transactionId = result.getResult().getTransactionId(); // 키를 등록한 transaction hash
 
-            // TODO 해당 서비스 서버에 metaId, signature 를 전송하여 사용자 계정과 연결
-        } else {
-            // error to register
+           // TODO 해당 서비스 서버에 metaId, signature 를 전송하여 사용자 계정과 연결
+       } else {
+           // error to register
 
-            if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_CREATE_META_ID) {
-                // Meta ID 가 생성하지 않음
-            }
-            else if (result.getResult().getError().getCode() == ServiceResult.Error.ERROR_CODE_UN_LINKED_SERVICE) {
-                // Service 등록을 하지 않음
-            }
+           if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_CREATE_META_ID) {
+               // Meta ID 가 생성하지 않음
+           }
+           else if (result.getResult().getError().getCode() == ServiceResult.Error.ERROR_CODE_UN_LINKED_SERVICE) {
+               // Service 등록을 하지 않음
+           }
 
-        }
-    }
+       }
+   }
 });
 ```
 ###### 서명 요청
@@ -89,7 +89,10 @@ Meta ID 가 생성되어 있지 않으면 Meta ID 생성 및 서비스 키 등�
 
 ```
 // 등록되어 있는 키가 존재하지 않으면 자동 생성
-keepinSDK.sign(getNonce(), true, new Callback<SignData>() {
+keepinSDK.sign(getNonce(),
+    true, /** 서비스가 키가 등록되어 있지 않으면 자동으로 키 생성하여 서비스 등록 */
+    metaId, /** metaId 가 같은지 확인 시 필요. null 이면 확인 안함 */
+    new Callback<SignData>() {
     @Override
     public void onResult(ServiceResult<SignData> result) {
         if (result.isSuccess()) {
@@ -108,6 +111,9 @@ keepinSDK.sign(getNonce(), true, new Callback<SignData>() {
             if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_CREATE_META_ID) {
                 // Meta ID 가 생성하지 않음
             }
+            else if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_MATCHED_META_ID) {
+                // 요청하는 Meta ID 와 Keepin 에 생성되어 있는 Meta ID 가 같지 않음
+            }
             else if (result.getResult().getError().getCode() == ServiceResult.Error.ERROR_CODE_UN_LINKED_SERVICE) {
                 // Service 등록을 하지 않음
             }
@@ -116,7 +122,7 @@ keepinSDK.sign(getNonce(), true, new Callback<SignData>() {
 });
 
 // 기존에 등록되어 키로만 서명 요청
-keepinSDK.sign(getNonce(), false, new Callback<SignData>() {
+keepinSDK.sign(getNonce(), false, null, new Callback<SignData>() {
     @Override
     public void onResult(ServiceResult<SignData> result) {
         if (result.isSuccess()) {
@@ -129,6 +135,9 @@ keepinSDK.sign(getNonce(), false, new Callback<SignData>() {
             // error to sign
             if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_CREATE_META_ID) {
                 // Meta ID 가 생성되어 있지 않음.
+            }
+            else if (result.getResult().getError().getCode() == ServiceResult.Error.CODE_NOT_MATCHED_META_ID) {
+                // 요청하는 Meta ID 와 Keepin 에 생성되어 있는 Meta ID 가 같지 않음
             }
             else if (result.getResult().getError().getCode() == ServiceResult.Error.ERROR_CODE_UN_LINKED_SERVICE) {
                 // Service 가 등록되어 있지 않음.
@@ -158,45 +167,69 @@ keepinSDK.removeKey(metaId, new Callback<RemoveKeyData>() {
 
 # Server side 에서의 인증 처리
 ###### Java
-[Web3j](https://github.com/web3j/web3j#getting-started) 추가<br>
-Import [MetaIdentity](https://github.com/YoungBaeJeon/metadium_android_sdk/blob/master/contract/MetaIdentity.java)
-```
-public static String signatureDataToString(Sign.SignatureData signatureData) {
-    ByteBuffer buffer = ByteBuffer.allocate(65);
-    buffer.put(signatureData.getR());
-    buffer.put(signatureData.getS());
-    buffer.put(signatureData.getV());
-    return Numeric.toHexString(buffer.array());
-}
 
+[Web3j](https://github.com/web3j/web3j#getting-started) 추가
+[IdentityRegistry](./app/src/main/java/com/metadium/metadiumsdk/IdentityRegistry.java), [ServiceKeyResolver](./app/src/main/java/com/metadium/metadiumsdk/IdentityRegistry.java) 소스 복사하여 포함한다.
+
+```
 public static Sign.SignatureData stringToSignatureData(String signature) {
     byte[] bytes = Numeric.hexStringToByteArray(signature);
     return new Sign.SignatureData(bytes[64], Arrays.copyOfRange(bytes, 0, 32), Arrays.copyOfRange(bytes, 32, 64));
 }
 
 
+String sinature = "...";    // Cilent 에서 전달 받은 서명
+String metaId = "...";      // Client 에서 전달 받은 Meta ID
+String serviceId = "...";   // 발급받은 service id
 // ec-recover
 SignatureData signatureData = stringToSignatureData(signature);
-BigInteger publicKey = Sign.signedMessageToKey(referrer.getChallege().getBytes("utf-8"), signatureData);
-byte[] address = Bytes.expandPadded(Numeric.hexStringToByteArray(Keys.getAddress(publicKey)), 32);
+BigInteger publicKey;
+try {
+    publicKey = Sign.signedMessageToKey(nonce.getBytes(), signatureData);
+}
+catch (SignatureException e) {
+    // invalid signature
+}
+String key = Numeric.prependHexPrefix(Keys.getAddress(publicKey));
 
-// MetaID 주소의 contract 에 해당 address 가 존재하는지 확인
+// to ein
+BigInteger ein = Numeric.toBigInt(result.getResult().getMetaId());
+
+// IdentityRegistry 에서 resolver address 획득
 Web3j web3j = Web3j.build(new HttpService("https://api.metadium.com/dev"));
-MetaIdentity contract = MetaIdentity.load(
-    account.getIdentificationId(),
-    web3j,
-    new TransactionManager(web3j, null) {
-        @Override
-        public EthSendTransaction sendTransaction(BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value) throws IOException {
-            return null;
-        }
-    },
-    new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+IdentityRegistry identityRegistry = IdentityRegistry.load(
+        "0xBE2bB3d7085fF04BdE4B3F177a730a826f05cB70",
+        web3j,
+        new ReadonlyTransactionManager(web3j, null),
+        new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
 );
-if (contract.keyHasPurpose(keyBytes, BigInteger.valueOf(5)).send()) {
-    // 인증 성공
+Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
+if (identity.getValue4().size() > 0) {
+    String resolverAddress = identity.getValue4().get(0);
+
+    // 키가 등록되어 있는지 확인
+    ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
+            resolverAddress,
+            web3j,
+            new ReadonlyTransactionManager(web3j, null),
+            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+    );
+    boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
+    String symbol = serviceKeyResolver.getSymbol(key).send();
+
+    if (hasForKey) {
+        if (serviceId.equalsIgnoreCase(symbol)) {
+            // 키 등록되어 있음
+        }
+        else {
+            // 키는 등록되어 있으나 제공 서비스가 아님
+        }
+    }
+    else {
+        showToast("Not exists key in Resolver");
+    }
 }
 else {
-    // 존재하지 않는 키
+    // resolver address 가 없음. => 등록된 키가 없다고 간주함.
 }
 ```
