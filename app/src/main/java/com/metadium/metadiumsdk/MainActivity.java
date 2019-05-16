@@ -121,19 +121,32 @@ public class MainActivity extends AppCompatActivity {
                             new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
                     );
 
+                    String resolverAddress;
                     try {
                         Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
                         if (identity.getValue4().size() > 0) {
-                            String resolverAddress = identity.getValue4().get(0);
+                            resolverAddress = identity.getValue4().get(0);
+                        }
+                        else {
+                            showToast("Not exists resolver");
+                            return;
+                        }
+                    }
+                    catch (Exception e) {
+                        showToast("Not exists contract, function, identity");
+                        return;
+                    }
 
-                            ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
-                                    resolverAddress,
-                                    web3j,
-                                    new ReadonlyTransactionManager(web3j, null),
-                                    new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
-                            );
-                            boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
-                            String symbol = serviceKeyResolver.getSymbol(key).send();
+                    ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
+                            resolverAddress,
+                            web3j,
+                            new ReadonlyTransactionManager(web3j, null),
+                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+                    );
+
+                    try {
+                        boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
+                        String symbol = serviceKeyResolver.getSymbol(key).send();
                             if (hasForKey) {
                                 if (KeepinSDK.getServiceId(MainActivity.this).equalsIgnoreCase(symbol)) {
                                     showToast("Exists key in Resolver");
@@ -145,13 +158,10 @@ public class MainActivity extends AppCompatActivity {
                             else {
                                 showToast("Not exists key in Resolver");
                             }
-                        }
-                        else {
-                            showToast("Not found Resolver");
-                        }
+
                     }
                     catch (Exception e) {
-                        showToast(e.getMessage());
+                        showToast("Not exists contract, function");
                     }
                 }
                 else {

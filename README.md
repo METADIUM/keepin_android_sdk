@@ -189,6 +189,7 @@ try {
 }
 catch (SignatureException e) {
     // invalid signature
+    return;
 }
 String key = Numeric.prependHexPrefix(Keys.getAddress(publicKey));
 
@@ -203,17 +204,29 @@ IdentityRegistry identityRegistry = IdentityRegistry.load(
         new ReadonlyTransactionManager(web3j, null),
         new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
 );
-Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
-if (identity.getValue4().size() > 0) {
-    String resolverAddress = identity.getValue4().get(0);
+String resolverAddress;
+try {
+    Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
+    if (identity.getValue4().size() > 0) {
+        resolverAddress = identity.getValue4().get(0);
+    }
+    else {
+        // not exists resolver
+    }
+}
+catch (Exception e) {
+    // not found identity or call error
+    return;
+}
 
-    // 키가 등록되어 있는지 확인
-    ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
-            resolverAddress,
-            web3j,
-            new ReadonlyTransactionManager(web3j, null),
-            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
-    );
+// 키가 등록되어 있는지 확인
+ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
+        resolverAddress,
+        web3j,
+        new ReadonlyTransactionManager(web3j, null),
+        new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+);
+try {
     boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
     String symbol = serviceKeyResolver.getSymbol(key).send();
 
@@ -229,7 +242,7 @@ if (identity.getValue4().size() > 0) {
         // 해당키가 등록되어 있지 않음
     }
 }
-else {
-    // resolver address 가 없음. => 등록된 키가 없다고 간주함.
+catch (Exception e) {
+    call error
 }
 ```
