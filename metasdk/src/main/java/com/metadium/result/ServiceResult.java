@@ -69,9 +69,13 @@ public class ServiceResult<T> {
          */
         public static final int CODE_NOT_CREATE_META_ID = CODE_INVALID_SIGNATURE-1;
         /**
+         * Keepin App not has meta id.
+         */
+        public static final int CODE_NOT_MATCHED_META_ID = CODE_NOT_CREATE_META_ID-1;
+        /**
          * The key for this service is not registered.
          */
-        public static final int CODE_UN_LINKED_SERVICE = CODE_NOT_CREATE_META_ID-1;
+        public static final int CODE_UN_LINKED_SERVICE = CODE_NOT_MATCHED_META_ID-1;
 
         private int errorCode;
         private String errorMessage;

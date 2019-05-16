@@ -12,6 +12,7 @@ import com.metadium.NotInstalledKeepinException;
 import com.metadium.result.Callback;
 import com.metadium.result.RegisterKeyData;
 import com.metadium.result.RemoveKeyData;
+import com.metadium.result.ReturnCallback;
 import com.metadium.result.ServiceResult;
 import com.metadium.result.SignData;
 
@@ -112,6 +113,25 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     showErrorToast(result.getError());
                 }
+            }
+        });
+    }
+
+    public void onClickGetMetaId(View view) {
+        sdk.getMetaId(new ReturnCallback<String>() {
+            @Override
+            public void onReturn(String result) {
+                showToast("MetaID="+result);
+            }
+        });
+
+    }
+
+    public void onClickHasKey(View view) {
+        sdk.hasKey(new ReturnCallback<Boolean>() {
+            @Override
+            public void onReturn(Boolean result) {
+                showToast("hasKey="+result);
             }
         });
     }

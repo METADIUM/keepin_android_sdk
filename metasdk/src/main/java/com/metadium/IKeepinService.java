@@ -89,15 +89,25 @@ public interface IKeepinService extends android.os.IInterface
                     _arg1 = data.readString();
                     boolean _arg2;
                     _arg2 = (0!=data.readInt());
-                    android.os.ResultReceiver _arg3;
+                    java.lang.String _arg3;
+                    _arg3 = data.readString();
+                    android.os.ResultReceiver _arg4;
                     if ((0!=data.readInt())) {
-                        _arg3 = android.os.ResultReceiver.CREATOR.createFromParcel(data);
+                        _arg4 = android.os.ResultReceiver.CREATOR.createFromParcel(data);
                     }
                     else {
-                        _arg3 = null;
+                        _arg4 = null;
                     }
-                    this.requestSign(_arg0, _arg1, _arg2, _arg3);
+                    this.requestSign(_arg0, _arg1, _arg2, _arg3, _arg4);
                     reply.writeNoException();
+                    return true;
+                }
+                case TRANSACTION_getMetaId:
+                {
+                    data.enforceInterface(DESCRIPTOR);
+                    java.lang.String _result = this.getMetaId();
+                    reply.writeNoException();
+                    reply.writeString(_result);
                     return true;
                 }
                 case TRANSACTION_hasKey:
@@ -175,7 +185,7 @@ public interface IKeepinService extends android.os.IInterface
                     _data.recycle();
                 }
             }
-            @Override public void requestSign(java.lang.String serviceId, java.lang.String nonce, boolean auotRegister, android.os.ResultReceiver resultReceiver) throws android.os.RemoteException
+            @Override public void requestSign(java.lang.String serviceId, java.lang.String nonce, boolean auotRegister, java.lang.String metaId, android.os.ResultReceiver resultReceiver) throws android.os.RemoteException
             {
                 android.os.Parcel _data = android.os.Parcel.obtain();
                 android.os.Parcel _reply = android.os.Parcel.obtain();
@@ -184,6 +194,7 @@ public interface IKeepinService extends android.os.IInterface
                     _data.writeString(serviceId);
                     _data.writeString(nonce);
                     _data.writeInt(((auotRegister)?(1):(0)));
+                    _data.writeString(metaId);
                     if ((resultReceiver!=null)) {
                         _data.writeInt(1);
                         resultReceiver.writeToParcel(_data, 0);
@@ -198,6 +209,23 @@ public interface IKeepinService extends android.os.IInterface
                     _reply.recycle();
                     _data.recycle();
                 }
+            }
+            @Override public java.lang.String getMetaId() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                java.lang.String _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_getMetaId, _data, _reply, 0);
+                    _reply.readException();
+                    _result = _reply.readString();
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
             }
             @Override public boolean hasKey(java.lang.String serviceId) throws android.os.RemoteException
             {
@@ -221,10 +249,12 @@ public interface IKeepinService extends android.os.IInterface
         static final int TRANSACTION_requestAddKey = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
         static final int TRANSACTION_requestRemoveKey = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
         static final int TRANSACTION_requestSign = (android.os.IBinder.FIRST_CALL_TRANSACTION + 2);
-        static final int TRANSACTION_hasKey = (android.os.IBinder.FIRST_CALL_TRANSACTION + 3);
+        static final int TRANSACTION_getMetaId = (android.os.IBinder.FIRST_CALL_TRANSACTION + 3);
+        static final int TRANSACTION_hasKey = (android.os.IBinder.FIRST_CALL_TRANSACTION + 4);
     }
     public void requestAddKey(java.lang.String serviceId, java.lang.String signature, java.lang.String nonce, android.os.ResultReceiver resultReceiver) throws android.os.RemoteException;
     public void requestRemoveKey(java.lang.String serviceId, java.lang.String metaId, android.os.ResultReceiver resultReceiver) throws android.os.RemoteException;
-    public void requestSign(java.lang.String serviceId, java.lang.String nonce, boolean auotRegister, android.os.ResultReceiver resultReceiver) throws android.os.RemoteException;
+    public void requestSign(java.lang.String serviceId, java.lang.String nonce, boolean auotRegister, java.lang.String metaId, android.os.ResultReceiver resultReceiver) throws android.os.RemoteException;
+    public java.lang.String getMetaId() throws android.os.RemoteException;
     public boolean hasKey(java.lang.String serviceId) throws android.os.RemoteException;
 }

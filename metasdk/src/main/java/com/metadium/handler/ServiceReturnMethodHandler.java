@@ -7,6 +7,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 
 import com.metadium.IKeepinService;
+import com.metadium.result.ReturnCallback;
 
 /**
  * Return value service request handler
@@ -14,50 +15,29 @@ import com.metadium.IKeepinService;
  */
 public abstract class ServiceReturnMethodHandler<T> extends ServiceBaseHandler implements ServiceConnection {
     private Context context;
+    private ReturnCallback<T> callback;
 
-    private IKeepinService keepinService;
-    private Object keepinServiceNotify = new Object();
-
-    public ServiceReturnMethodHandler(Context context) {
+    public ServiceReturnMethodHandler(Context context, ReturnCallback<T> callback) {
         this.context = context;
+        this.callback = callback;
     }
 
     /**
      * request service api
      * @return return value
-     * @throws RemoteException
      */
-    public T request() throws RemoteException {
+    public void request() {
         context.bindService(
                 serviceIntent(),
-                this,
+                ServiceReturnMethodHandler.this,
                 Context.BIND_AUTO_CREATE
         );
-
-        // waiting service connected
-        for (int i = 0; i < 10; i++) {
-            try {
-                keepinServiceNotify.wait(1000);
-            }
-            catch (InterruptedException e) {
-                if (keepinService != null) {
-                    break;
-                }
-            }
-        }
-
-        // request
-        if (keepinService != null) {
-            return send(keepinService);
-        }
-
-        throw new RemoteException("Timeout");
     }
 
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-        keepinService = IKeepinService.Stub.asInterface(iBinder);
-        keepinServiceNotify.notify(); // notify keepin service connection
+        IKeepinService keepinService = IKeepinService.Stub.asInterface(iBinder);
+        callback.onReturn(send(keepinService));
     }
 
     @Override

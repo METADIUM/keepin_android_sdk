@@ -17,7 +17,7 @@ import com.metadium.result.ServiceResult;
  * Async service request handler
  * @param <T> response data class
  */
-abstract class ServiceMethodHandler<T> extends  ServiceBaseHandler implements ServiceConnection {
+abstract class ServiceMethodHandler<T> extends ServiceBaseHandler implements ServiceConnection {
     static final String RESULT_PARAM_META_ID = "meta_id";
     static final String RESULT_PARAM_SIGNATURE = "signature";
     static final String RESULT_PARAM_TRANSACTION_ID = "transaction_id";

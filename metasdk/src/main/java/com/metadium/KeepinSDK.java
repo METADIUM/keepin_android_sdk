@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.RemoteException;
 
+import com.metadium.handler.GetMetaIdReturnHandler;
+import com.metadium.handler.HasKeyReturnHandler;
 import com.metadium.handler.RegisterKeyHandler;
 import com.metadium.handler.RemoveKeyHandler;
 import com.metadium.handler.ServiceReturnMethodHandler;
@@ -14,6 +16,7 @@ import com.metadium.handler.SignHandler;
 import com.metadium.result.Callback;
 import com.metadium.result.RegisterKeyData;
 import com.metadium.result.RemoveKeyData;
+import com.metadium.result.ReturnCallback;
 import com.metadium.result.SignData;
 
 /**
@@ -131,36 +134,37 @@ public class KeepinSDK {
      * Request keepin app to sign with a key for the service.
      * @param nonce        message to sign
      * @param autoRegister if need register key, add key
+     * @param metaId       require to sign with meta id
+     * @param callback Response callback to request
+     */
+    public void sign(String nonce, boolean autoRegister, String metaId, Callback<SignData> callback) {
+        new SignHandler(context, serviceId, nonce, autoRegister, metaId, callback).request();
+    }
+
+    /**
+     * Request keepin app to sign with a key for the service.
+     * @param nonce        message to sign
+     * @param autoRegister if need register key, add key
      * @param callback Response callback to request
      */
     public void sign(String nonce, boolean autoRegister, Callback<SignData> callback) {
-        new SignHandler(context, serviceId, nonce, autoRegister, callback).request();
+        new SignHandler(context, serviceId, nonce, autoRegister, null, callback).request();
     }
 
     /**
      * check to key for the service is registered.
-     * @param context
-     * @return if already has key for service, return true
+     * @param callback callback to hasKey
      */
-    public boolean hasKey(Context context) {
-        ServiceReturnMethodHandler<Boolean> returnMethodHandler = new ServiceReturnMethodHandler<Boolean>(context) {
-            @Override
-            protected Boolean send(IKeepinService service) {
-                try {
-                    return service.hasKey(getServiceId());
-                }
-                catch (RemoteException e) {
-                    return false;
-                }
-            }
-        };
+    public void hasKey(ReturnCallback<Boolean> callback) {
+        new HasKeyReturnHandler(context, serviceId, callback).request();
+    }
 
-        try {
-            return returnMethodHandler.request();
-        }
-        catch (RemoteException e) {
-            return false;
-        }
+    /**
+     * Get meta id in keepin
+     * @param callback callback to getMetaId
+     */
+    public void getMetaId(ReturnCallback<String> callback) {
+        new GetMetaIdReturnHandler(context, callback).request();
     }
 
 
