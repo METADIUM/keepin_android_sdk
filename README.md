@@ -226,7 +226,7 @@ if (identity.getValue4().size() > 0) {
         }
     }
     else {
-        showToast("Not exists key in Resolver");
+        // 해당키가 등록되어 있지 않음
     }
 }
 else {
