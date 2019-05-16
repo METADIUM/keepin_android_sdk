@@ -133,8 +133,14 @@ public class MainActivity extends AppCompatActivity {
                                     new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
                             );
                             boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
+                            String symbol = serviceKeyResolver.getSymbol(key).send();
                             if (hasForKey) {
-                                showToast("Exists key in Resolver");
+                                if (KeepinSDK.getServiceId(MainActivity.this).equalsIgnoreCase(symbol)) {
+                                    showToast("Exists key in Resolver");
+                                }
+                                else {
+                                    showToast("Not matched service id");
+                                }
                             }
                             else {
                                 showToast("Not exists key in Resolver");

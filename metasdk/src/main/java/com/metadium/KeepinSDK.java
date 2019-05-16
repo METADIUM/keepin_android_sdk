@@ -168,7 +168,7 @@ public class KeepinSDK {
     }
 
 
-    private String getServiceId(Context context) {
+    public static String getServiceId(Context context) {
         try {
             ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
             return applicationInfo.metaData.getString("KEEPIN_SERVICE_ID");
