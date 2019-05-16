@@ -16,6 +16,19 @@ import com.metadium.result.ReturnCallback;
 import com.metadium.result.ServiceResult;
 import com.metadium.result.SignData;
 
+import org.web3j.crypto.Keys;
+import org.web3j.crypto.Sign;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.http.HttpService;
+import org.web3j.tuples.generated.Tuple4;
+import org.web3j.tx.ReadonlyTransactionManager;
+import org.web3j.tx.gas.StaticGasProvider;
+import org.web3j.utils.Numeric;
+
+import java.math.BigInteger;
+import java.security.SignatureException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -72,13 +85,68 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public static Sign.SignatureData stringToSignatureData(String signature) {
+        byte[] bytes = Numeric.hexStringToByteArray(signature);
+        return new Sign.SignatureData(bytes[64], Arrays.copyOfRange(bytes, 0, 32), Arrays.copyOfRange(bytes, 32, 64));
+    }
+
     public void onClickSign(View view) {
-        sdk.sign(getNonce(), false, new Callback<SignData>() {
+        String nonce = getNonce();
+        sdk.sign(nonce, false, new Callback<SignData>() {
             @Override
             public void onResult(ServiceResult<SignData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
                     showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+
+                    Sign.SignatureData signatureData = stringToSignatureData(result.getResult().getSignature());
+
+                    BigInteger publicKey;
+                    try {
+                        publicKey = Sign.signedMessageToKey(nonce.getBytes(), signatureData);
+                    }
+                    catch (SignatureException e) {
+                        showToast(e.toString());
+                        return;
+                    }
+
+                    BigInteger ein = Numeric.toBigInt(result.getResult().getMetaId());
+                    String key = Numeric.prependHexPrefix(Keys.getAddress(publicKey));
+
+                    Web3j web3j = Web3j.build(new HttpService("https://api.metadium.com/dev"));
+                    IdentityRegistry identityRegistry = IdentityRegistry.load(
+                            "0xBE2bB3d7085fF04BdE4B3F177a730a826f05cB70",
+                            web3j,
+                            new ReadonlyTransactionManager(web3j, null),
+                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+                    );
+
+                    try {
+                        Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
+                        if (identity.getValue4().size() > 0) {
+                            String resolverAddress = identity.getValue4().get(0);
+
+                            ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
+                                    resolverAddress,
+                                    web3j,
+                                    new ReadonlyTransactionManager(web3j, null),
+                                    new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+                            );
+                            boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
+                            if (hasForKey) {
+                                showToast("Exists key in Resolver");
+                            }
+                            else {
+                                showToast("Not exists key in Resolver");
+                            }
+                        }
+                        else {
+                            showToast("Not found Resolver");
+                        }
+                    }
+                    catch (Exception e) {
+                        showToast(e.getMessage());
+                    }
                 }
                 else {
                     showErrorToast(result.getError());
