@@ -13,7 +13,7 @@ repositories {
 앱 `build.gradle` 파일에 dependency 를 추가
 ```
 dependencies {
-    implementation 'com.github.YoungBaeJeon.metadium_android_sdk:metasdk:0.2'
+    implementation 'com.github.YoungBaeJeon.metadium_android_sdk:metasdk:0.3'
 }
 ```
 
@@ -161,6 +161,26 @@ keepinSDK.removeKey(metaId, new Callback<RemoveKeyData>() {
         else {
             showErrorToast(result.getError());
         }
+    }
+});
+```
+
+###### Meta ID 확인
+```
+keepinSDK.getMetaId(new ReturnCallback<String>() {
+    @Override
+    public void onReturn(String result) {
+        // result is meta id
+    }
+});
+```
+
+###### 서비스 키 등록 여부 확인
+```
+sdk.hasKey(new ReturnCallback<Boolean>() {
+    @Override
+    public void onReturn(Boolean result) {
+        showToast("hasKey="+result);
     }
 });
 ```
