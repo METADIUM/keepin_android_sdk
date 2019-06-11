@@ -10,7 +10,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Register Key"
+        android:text="서비스 등록"
         android:textAllCaps="false"
         android:textColor="@android:color/black"
         android:textSize="20sp"
@@ -20,7 +20,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign"
+        android:text="서명 요청"
         android:textAllCaps="false"
         android:textColor="@android:color/black"
         android:textSize="20sp"
@@ -30,13 +30,37 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign and register"
+        android:text="서명 요청 (없으면 등록)"
         android:textAllCaps="false"
         android:textColor="@android:color/black"
         android:textSize="20sp"
         android:onClick="onClickSignAndRegister"
         />
 
+
+    <RadioGroup
+        android:id="@+id/net"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+        <RadioButton
+            android:id="@+id/test_net"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TestNet"
+            />
+        <RadioButton
+            android:id="@+id/main_net"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MainNet"
+            />
+
+    </RadioGroup>
+
+
+
+    <!--
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -76,5 +100,5 @@
         android:textSize="20sp"
         android:onClick="onClickExternalRegister"
         />
-
+    -->
 </LinearLayout>
