@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.metadium.KeepinExtSDK;
@@ -35,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private KeepinSDK sdk;
     private String metaId;
 
+    private boolean isTestNet = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +49,15 @@ public class MainActivity extends AppCompatActivity {
         catch (NotInstalledKeepinException e) {
             startActivity(e.getIntent());
         }
+
+        RadioGroup netGroup = findViewById(R.id.net);
+        netGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                isTestNet = checkedId == R.id.test_net;
+            }
+        });
+        netGroup.check(R.id.test_net);
     }
 
     public void onClickRegister(View view) {
@@ -54,10 +66,12 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(ServiceResult<RegisterKeyData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
-                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+                    showToast("서비스 등록 성공");
+//                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
                 }
                 else {
-                    showErrorToast(result.getError());
+//                    showErrorToast(result.getError());
+                    showToast("서비스 등록 실패");
                 }
             }
         });
@@ -97,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(ServiceResult<SignData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
-                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+//                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
 
                     Sign.SignatureData signatureData = stringToSignatureData(result.getResult().getSignature());
 
@@ -107,15 +121,18 @@ public class MainActivity extends AppCompatActivity {
                     }
                     catch (SignatureException e) {
                         showToast(e.toString());
+                        showToast("올바르지 않은 서명");
                         return;
                     }
 
                     BigInteger ein = Numeric.toBigInt(result.getResult().getMetaId());
                     String key = Numeric.prependHexPrefix(Keys.getAddress(publicKey));
 
-                    Web3j web3j = Web3j.build(new HttpService("https://api.metadium.com/dev"));
+//                    Web3j web3j = Web3j.build(new HttpService("https://api.metadium.com/prod"));
+                    Web3j web3j = Web3j.build(new HttpService(isTestNet ? "https://api.metadium.com/dev" : "https://api.metadium.com/prod"));
                     IdentityRegistry identityRegistry = IdentityRegistry.load(
-                            "0xBE2bB3d7085fF04BdE4B3F177a730a826f05cB70",
+//                            "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
+                            isTestNet ? "0xbe2bb3d7085ff04bde4b3f177a730a826f05cb70" : "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
                             web3j,
                             new ReadonlyTransactionManager(web3j, null),
                             new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
@@ -149,10 +166,10 @@ public class MainActivity extends AppCompatActivity {
                         String symbol = serviceKeyResolver.getSymbol(key).send();
                             if (hasForKey) {
                                 if (KeepinSDK.getServiceId(MainActivity.this).equalsIgnoreCase(symbol)) {
-                                    showToast("Exists key in Resolver");
+                                    showToast("서명확인 성공");
                                 }
                                 else {
-                                    showToast("Not matched service id");
+                                    showToast("서명확인 실패");
                                 }
                             }
                             else {
@@ -172,12 +189,81 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSignAndRegister(View view) {
-        sdk.sign(getNonce(), true, new Callback<SignData>() {
+        String nonce = getNonce();
+        sdk.sign(nonce, true, new Callback<SignData>() {
             @Override
             public void onResult(ServiceResult<SignData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
-                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+//                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+
+                    Sign.SignatureData signatureData = stringToSignatureData(result.getResult().getSignature());
+
+                    BigInteger publicKey;
+                    try {
+                        publicKey = Sign.signedMessageToKey(nonce.getBytes(), signatureData);
+                    }
+                    catch (SignatureException e) {
+                        showToast(e.toString());
+                        showToast("올바르지 않은 서명");
+                        return;
+                    }
+
+                    BigInteger ein = Numeric.toBigInt(result.getResult().getMetaId());
+                    String key = Numeric.prependHexPrefix(Keys.getAddress(publicKey));
+
+//                    Web3j web3j = Web3j.build(new HttpService("https://api.metadium.com/prod"));
+                    Web3j web3j = Web3j.build(new HttpService(isTestNet ? "https://api.metadium.com/dev" : "https://api.metadium.com/prod"));
+                    IdentityRegistry identityRegistry = IdentityRegistry.load(
+//                            "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
+                            isTestNet ? "0xbe2bb3d7085ff04bde4b3f177a730a826f05cb70" : "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
+                            web3j,
+                            new ReadonlyTransactionManager(web3j, null),
+                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+                    );
+
+                    String resolverAddress;
+                    try {
+                        Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
+                        if (identity.getValue4().size() > 0) {
+                            resolverAddress = identity.getValue4().get(0);
+                        }
+                        else {
+                            showToast("Not exists resolver");
+                            return;
+                        }
+                    }
+                    catch (Exception e) {
+                        showToast("Not exists contract, function, identity");
+                        return;
+                    }
+
+                    ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
+                            resolverAddress,
+                            web3j,
+                            new ReadonlyTransactionManager(web3j, null),
+                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
+                    );
+
+                    try {
+                        boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
+                        String symbol = serviceKeyResolver.getSymbol(key).send();
+                        if (hasForKey) {
+                            if (KeepinSDK.getServiceId(MainActivity.this).equalsIgnoreCase(symbol)) {
+                                showToast("서명확인 성공");
+                            }
+                            else {
+                                showToast("서명확인 실패");
+                            }
+                        }
+                        else {
+                            showToast("Not exists key in Resolver");
+                        }
+
+                    }
+                    catch (Exception e) {
+                        showToast("Not exists contract, function");
+                    }
                 }
                 else {
                     showErrorToast(result.getError());
