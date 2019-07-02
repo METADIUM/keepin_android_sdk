@@ -51,13 +51,16 @@ public class KeepinSDK {
      * @throws NotInstalledKeepinException If Keepin App is not installed on the device
      */
     public KeepinSDK(Context context) throws NotInstalledKeepinException {
-        this.context = context;
-
+        this(context, null);
         serviceId = getServiceId(context);
         if (serviceId == null) {
             throw new RuntimeException("Not found service id");
         }
+    }
 
+    public KeepinSDK(Context context, String serviceId) throws NotInstalledKeepinException {
+        this.context = context;
+        this.serviceId = serviceId;
         if (!isKeepinAvailable(context)) {
             throw new NotInstalledKeepinException(getKeepinInstallIntent());
         }
