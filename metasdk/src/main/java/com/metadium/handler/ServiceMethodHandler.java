@@ -18,10 +18,10 @@ import com.metadium.result.ServiceResult;
  * @param <T> response data class
  */
 abstract class ServiceMethodHandler<T> extends ServiceBaseHandler implements ServiceConnection {
-    static final String RESULT_PARAM_META_ID = "meta_id";
-    static final String RESULT_PARAM_SIGNATURE = "signature";
-    static final String RESULT_PARAM_TRANSACTION_ID = "transaction_id";
-    private static final String RESULT_PARAM_ERROR_CODE = "error_code";
+    static final String RESULT_PARAM_META_ID = "metaID";
+    static final String RESULT_PARAM_SIGNATURE = "sign";
+    static final String RESULT_PARAM_TRANSACTION_ID = "txID";
+    private static final String RESULT_PARAM_ERROR_CODE = "code";
     private static final String RESULT_PARAM_ERROR = "error";
 
     private Context context;

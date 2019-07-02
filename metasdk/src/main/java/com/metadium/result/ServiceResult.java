@@ -59,23 +59,27 @@ public class ServiceResult<T> {
         /**
          * Invalid parameter value error code
          */
-        public static final int CODE_INVALID_PARAM = -100500;
+        public static final int CODE_INVALID_PARAM = 5;
         /**
          * Invalid signature
          */
-        public static final int CODE_INVALID_SIGNATURE = CODE_INVALID_PARAM-1;
+        public static final int CODE_INVALID_SIGNATURE = 6;
         /**
          * Keepin App has not yet created a meta id.
          */
-        public static final int CODE_NOT_CREATE_META_ID = CODE_INVALID_SIGNATURE-1;
+        public static final int CODE_NOT_CREATE_META_ID = 1;
         /**
          * Keepin App not has meta id.
          */
-        public static final int CODE_NOT_MATCHED_META_ID = CODE_NOT_CREATE_META_ID-1;
+        public static final int CODE_NOT_MATCHED_META_ID = 2;
         /**
-         * The key for this service is not registered.
+         * The key for this service is not registered by user.
          */
-        public static final int CODE_UN_LINKED_SERVICE = CODE_NOT_MATCHED_META_ID-1;
+        public static final int CODE_UN_LINKED_SERVICE = 3;
+        /**
+         * This service is not registered. Request register service. https://github.com/METADIUM/static/blob/master/services.json
+         */
+        public static final int ERROR_CODE_NOT_REGISTER_SERVICE = 4;
 
         private int errorCode;
         private String errorMessage;
