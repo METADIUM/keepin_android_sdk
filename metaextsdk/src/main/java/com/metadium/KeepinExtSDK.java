@@ -60,6 +60,10 @@ public class KeepinExtSDK extends KeepinSDK {
         super(context);
     }
 
+    public KeepinExtSDK(Context context, String serviceId) throws NotInstalledKeepinException {
+        super(context, serviceId);
+    }
+
     private void saveWalletFile(Context context, MetaWalletFile metaWalletFile) {
         try {
             SecureFileUtils.save(context, getWalletFile(context), objectMapper.writeValueAsBytes(metaWalletFile));
