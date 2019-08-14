@@ -1,5 +1,5 @@
-# Metadium android SDK
-Metadium android SDK 설명.
+# Keepin android SDK
+Keepin android SDK 설명.
 
 # Installation
 프로젝트 `build.gradle` 파일에 repository를 추가
@@ -35,7 +35,8 @@ dependencies {
 
 # Usage
 `AndroidManifest.xml` 에 meta-data 로 service-id 설정<br>
-service-id 는 Metadium 발급합니다.
+service-id 는 [Metadium registry](https://github.com/METADIUM/meta-SP-Registry/blob/master/service_registry.md) 발급합니다.  
+
 ```
 <application>
         <meta-data
