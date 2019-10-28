@@ -13,7 +13,7 @@ repositories {
 앱 `build.gradle` 파일에 dependency 를 추가
 ```
 dependencies {
-    implementation 'com.github.METADIUM.keepin_android_sdk:metasdk:0.4.1'
+    implementation 'com.github.METADIUM:keepin_android_sdk:demo-appec-SNAPSHOT'
 }
 ```
 
