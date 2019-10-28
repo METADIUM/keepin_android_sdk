@@ -228,7 +228,7 @@ public class KeepinExtSDK extends KeepinSDK {
                     // sign
                     String signature = wallet.sign(password, nonce.getBytes("utf-8"));
 
-                    callback.onResult(new ServiceResult<>(new SignData(wallet.getMetaId(), signature, null)));
+                    callback.onResult(new ServiceResult<>(new SignData(wallet.getMetaId(), null, signature, null)));
                 } catch (Exception e) {
                     callback.onResult(new ServiceResult<SignData>(new ServiceResult.Error(Activity.RESULT_CANCELED, e.getLocalizedMessage())));
                 }

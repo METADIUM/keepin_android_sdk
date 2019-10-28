@@ -3,6 +3,7 @@ package com.metadium.metadiumsdk;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -16,6 +17,8 @@ import com.metadium.result.RemoveKeyData;
 import com.metadium.result.ReturnCallback;
 import com.metadium.result.ServiceResult;
 import com.metadium.result.SignData;
+import com.metaidum.did.resolver.client.DIDResolverAPI;
+import com.metaidum.did.resolver.client.document.DidDocument;
 
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
@@ -27,6 +30,7 @@ import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.List;
@@ -61,13 +65,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickRegister(View view) {
-        sdk.registerKey(getNonce(), new Callback<RegisterKeyData>() {
+        final String nonce = getNonce();
+        sdk.registerKey(nonce, new Callback<RegisterKeyData>() {
             @Override
             public void onResult(ServiceResult<RegisterKeyData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
                     showToast("서비스 등록 성공");
-//                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+                    showToast("MetaId:"+result.getResult().getMetaId()+"\ndid="+result.getResult().getDid()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+
+                    DidDocument didDocument = DIDResolverAPI.getInstance().getDocument(result.getResult().getDid(), true);
+                    if (didDocument != null) {
+                        try {
+                            if (didDocument.hasRecoverAddressFromSignature(nonce.getBytes(Charset.defaultCharset()), result.getResult().getSignature())) {
+                                showToast("검증성공");
+                            }
+                        }
+                        catch (SignatureException e) {
+                            showToast("검증실패 "+e.toString());
+                        }
+                    }
+                    else {
+                        showToast("Not found did "+result.getResult().getDid());
+                    }
                 }
                 else {
 //                    showErrorToast(result.getError());
@@ -111,74 +131,21 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(ServiceResult<SignData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
-//                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+                    showToast("MetaId:"+result.getResult().getMetaId()+"\ndid="+result.getResult().getDid()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
 
-                    Sign.SignatureData signatureData = stringToSignatureData(result.getResult().getSignature());
-
-                    BigInteger publicKey;
-                    try {
-                        publicKey = Sign.signedMessageToKey(nonce.getBytes(), signatureData);
-                    }
-                    catch (SignatureException e) {
-                        showToast(e.toString());
-                        showToast("올바르지 않은 서명");
-                        return;
-                    }
-
-                    BigInteger ein = Numeric.toBigInt(result.getResult().getMetaId());
-                    String key = Numeric.prependHexPrefix(Keys.getAddress(publicKey));
-
-//                    Web3j web3j = Web3j.build(new HttpService("https://api.metadium.com/prod"));
-                    Web3j web3j = Web3j.build(new HttpService(isTestNet ? "https://api.metadium.com/dev" : "https://api.metadium.com/prod"));
-                    IdentityRegistry identityRegistry = IdentityRegistry.load(
-//                            "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
-                            isTestNet ? "0xbe2bb3d7085ff04bde4b3f177a730a826f05cb70" : "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
-                            web3j,
-                            new ReadonlyTransactionManager(web3j, null),
-                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
-                    );
-
-                    String resolverAddress;
-                    try {
-                        Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
-                        if (identity.getValue4().size() > 0) {
-                            resolverAddress = identity.getValue4().get(0);
+                    DidDocument didDocument = DIDResolverAPI.getInstance().getDocument(result.getResult().getDid(), true);
+                    if (didDocument != null) {
+                        try {
+                            if (didDocument.hasRecoverAddressFromSignature(nonce.getBytes(Charset.defaultCharset()), result.getResult().getSignature())) {
+                                showToast("검증성공");
+                            }
                         }
-                        else {
-                            showToast("Not exists resolver");
-                            return;
+                        catch (SignatureException e) {
+                            showToast("검증실패 "+e.toString());
                         }
                     }
-                    catch (Exception e) {
-                        showToast("Not exists contract, function, identity");
-                        return;
-                    }
-
-                    ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
-                            resolverAddress,
-                            web3j,
-                            new ReadonlyTransactionManager(web3j, null),
-                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
-                    );
-
-                    try {
-                        boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
-                        String symbol = serviceKeyResolver.getSymbol(key).send();
-                            if (hasForKey) {
-                                if (KeepinSDK.getServiceId(MainActivity.this).equalsIgnoreCase(symbol)) {
-                                    showToast("서명확인 성공");
-                                }
-                                else {
-                                    showToast("서명확인 실패");
-                                }
-                            }
-                            else {
-                                showToast("Not exists key in Resolver");
-                            }
-
-                    }
-                    catch (Exception e) {
-                        showToast("Not exists contract, function");
+                    else {
+                        showToast("Not found did "+result.getResult().getDid());
                     }
                 }
                 else {
@@ -195,74 +162,21 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(ServiceResult<SignData> result) {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
-//                    showToast("MetaId:"+result.getResult().getMetaId()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+                    showToast("MetaId:"+result.getResult().getMetaId()+"\ndid="+result.getResult().getDid()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
 
-                    Sign.SignatureData signatureData = stringToSignatureData(result.getResult().getSignature());
-
-                    BigInteger publicKey;
-                    try {
-                        publicKey = Sign.signedMessageToKey(nonce.getBytes(), signatureData);
-                    }
-                    catch (SignatureException e) {
-                        showToast(e.toString());
-                        showToast("올바르지 않은 서명");
-                        return;
-                    }
-
-                    BigInteger ein = Numeric.toBigInt(result.getResult().getMetaId());
-                    String key = Numeric.prependHexPrefix(Keys.getAddress(publicKey));
-
-//                    Web3j web3j = Web3j.build(new HttpService("https://api.metadium.com/prod"));
-                    Web3j web3j = Web3j.build(new HttpService(isTestNet ? "https://api.metadium.com/dev" : "https://api.metadium.com/prod"));
-                    IdentityRegistry identityRegistry = IdentityRegistry.load(
-//                            "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
-                            isTestNet ? "0xbe2bb3d7085ff04bde4b3f177a730a826f05cb70" : "0x42bbff659772231bb63c7c175a1021e080a4cf9d",
-                            web3j,
-                            new ReadonlyTransactionManager(web3j, null),
-                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
-                    );
-
-                    String resolverAddress;
-                    try {
-                        Tuple4<String, List<String>, List<String>, List<String>> identity = identityRegistry.getIdentity(ein).send();
-                        if (identity.getValue4().size() > 0) {
-                            resolverAddress = identity.getValue4().get(0);
-                        }
-                        else {
-                            showToast("Not exists resolver");
-                            return;
-                        }
-                    }
-                    catch (Exception e) {
-                        showToast("Not exists contract, function, identity");
-                        return;
-                    }
-
-                    ServiceKeyResolver serviceKeyResolver = ServiceKeyResolver.load(
-                            resolverAddress,
-                            web3j,
-                            new ReadonlyTransactionManager(web3j, null),
-                            new StaticGasProvider(BigInteger.ZERO, BigInteger.ZERO)
-                    );
-
-                    try {
-                        boolean hasForKey = serviceKeyResolver.isKeyFor(key, ein).send();
-                        String symbol = serviceKeyResolver.getSymbol(key).send();
-                        if (hasForKey) {
-                            if (KeepinSDK.getServiceId(MainActivity.this).equalsIgnoreCase(symbol)) {
-                                showToast("서명확인 성공");
-                            }
-                            else {
-                                showToast("서명확인 실패");
+                    DidDocument didDocument = DIDResolverAPI.getInstance().getDocument(result.getResult().getDid(), true);
+                    if (didDocument != null) {
+                        try {
+                            if (didDocument.hasRecoverAddressFromSignature(nonce.getBytes(Charset.defaultCharset()), result.getResult().getSignature())) {
+                                showToast("검증성공");
                             }
                         }
-                        else {
-                            showToast("Not exists key in Resolver");
+                        catch (SignatureException e) {
+                            showToast("검증실패 "+e.toString());
                         }
-
                     }
-                    catch (Exception e) {
-                        showToast("Not exists contract, function");
+                    else {
+                        showToast("Not found did "+result.getResult().getDid());
                     }
                 }
                 else {
@@ -316,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showToast(final String message) {
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+            Log.d("mansud", message);
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         }
         else {

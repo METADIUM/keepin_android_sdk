@@ -20,6 +20,7 @@ import com.metadium.result.ServiceResult;
 abstract class ServiceMethodHandler<T> extends ServiceBaseHandler implements ServiceConnection {
     static final String RESULT_PARAM_META_ID = "metaID";
     static final String RESULT_PARAM_SIGNATURE = "sign";
+    static final String RESULT_PARAM_META_DID = "did";
     static final String RESULT_PARAM_TRANSACTION_ID = "txID";
     private static final String RESULT_PARAM_ERROR_CODE = "code";
     private static final String RESULT_PARAM_ERROR = "error";

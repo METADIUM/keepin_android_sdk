@@ -38,6 +38,6 @@ public class RegisterKeyHandler extends ServiceMethodHandler<RegisterKeyData> {
 
     @Override
     protected ServiceResult<RegisterKeyData> getData(Bundle resultData) {
-        return new ServiceResult<>(new RegisterKeyData(resultData.getString(RESULT_PARAM_META_ID), resultData.getString(RESULT_PARAM_SIGNATURE), resultData.getString(RESULT_PARAM_TRANSACTION_ID)));
+        return new ServiceResult<>(new RegisterKeyData(resultData.getString(RESULT_PARAM_META_ID), resultData.getString(RESULT_PARAM_META_DID), resultData.getString(RESULT_PARAM_SIGNATURE), resultData.getString(RESULT_PARAM_TRANSACTION_ID)));
     }
 }

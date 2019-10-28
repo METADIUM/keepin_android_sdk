@@ -35,6 +35,6 @@ public class RemoveKeyHandler extends ServiceMethodHandler<RemoveKeyData> {
 
     @Override
     protected ServiceResult<RemoveKeyData> getData(Bundle resultData) {
-        return new ServiceResult<>(new RemoveKeyData(resultData.getString(RESULT_PARAM_META_ID), resultData.getString(RESULT_PARAM_TRANSACTION_ID)));
+        return new ServiceResult<>(new RemoveKeyData(resultData.getString(RESULT_PARAM_META_ID), resultData.getString(RESULT_PARAM_META_DID), resultData.getString(RESULT_PARAM_TRANSACTION_ID)));
     }
 }

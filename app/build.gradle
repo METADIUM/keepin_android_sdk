@@ -37,4 +37,5 @@ dependencies {
     implementation project(':metaextsdk')
 
     implementation 'org.web3j:core:4.2.0-android'
+    implementation 'com.github.METADIUM:did-resolver-java-client:0.1.3'
 }
