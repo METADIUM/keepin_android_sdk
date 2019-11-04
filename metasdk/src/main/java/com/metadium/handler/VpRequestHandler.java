@@ -15,7 +15,7 @@ import com.metadium.result.VpRequestData;
 import java.util.Map;
 
 /**
- * Request sign key to keepin service.
+ * Request user data to keepin service.
  */
 public class VpRequestHandler extends ServiceMethodHandler<VpRequestData> {
     private String message;

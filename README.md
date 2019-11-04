@@ -52,7 +52,7 @@ keepinSdk.registerKey("nonce", new Callback<RegisterKeyData>() {
    public void onResult(ServiceResult<RegisterKeyData> result) {
        if (result.isSuccess()) {
            String metaId = result.getResult().getMetaId(); // user Meta ID
-           Stromg did = result.getResult().getDid(); // did. 'did:meta:testnet:00...113'
+           String did = result.getResult().getDid(); // did. 'did:meta:testnet:00...113'
            String signature = result.getResult().getSignature(); // signed message(nonce)
            String transactionId = result.getResult().getTransactionId(); // 키를 등록한 transaction hash
 
@@ -125,6 +125,29 @@ keepinSDK.removeKey(metaId, new Callback<RemoveKeyData>() {
         }
     }
 });
+```
+
+#### 사용자 데이터 요청 (Only Demo)
+```java
+keepinSDK.requestVp(
+    nonce,  /** 서명할 메세지이며 service provider 의해 관리되어야 한다. */
+    "DemoPresentation", /** 데이터 요청할 presentation 의 이름. */
+    new Callback<VpRequestData>() {
+        @Override
+        public void onResult(ServiceResult<VpRequestData> result) {
+            if (result.isSuccess()) {
+                String metaId = result.getResult().getMetaId();
+                String did = result.getResult().getDid(); // did. 'did:meta:testnet:00...113'
+                String signature = result.getResult().getSignature(); // signed message(nonce)
+                String transactionId = result.getResult().getTransactionId(); // 키를 등록한 transaction hash
+                Map<String, String> userData = result.getResult().getUserData(); // 사용자의 정보
+            }
+            else {
+                showErrorToast(result.getError());
+            }
+        }
+    }
+);
 ```
 
 #### Meta ID 확인
