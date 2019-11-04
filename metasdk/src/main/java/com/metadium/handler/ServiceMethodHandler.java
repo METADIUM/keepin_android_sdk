@@ -21,6 +21,7 @@ abstract class ServiceMethodHandler<T> extends ServiceBaseHandler implements Ser
     static final String RESULT_PARAM_META_ID = "metaID";
     static final String RESULT_PARAM_SIGNATURE = "sign";
     static final String RESULT_PARAM_META_DID = "did";
+    static final String RESULT_PARAM_USER_DATA = "user_data";
     static final String RESULT_PARAM_TRANSACTION_ID = "txID";
     private static final String RESULT_PARAM_ERROR_CODE = "code";
     private static final String RESULT_PARAM_ERROR = "error";

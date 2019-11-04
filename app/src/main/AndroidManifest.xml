@@ -16,7 +16,7 @@
         <!-- test service id -->
         <meta-data
             android:name="KEEPIN_SERVICE_ID"
-            android:value="a0ad73f907ab3ce870db6671afb4a417a3315f03e5eca6a2b44cb1fac08d5d60" />
+            android:value="centerpay" />
 
         <activity android:name=".MainActivity">
             <intent-filter>

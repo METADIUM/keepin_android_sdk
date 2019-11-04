@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metadium.KeepinExtSDK;
 import com.metadium.KeepinSDK;
 import com.metadium.NotInstalledKeepinException;
@@ -17,6 +19,7 @@ import com.metadium.result.RemoveKeyData;
 import com.metadium.result.ReturnCallback;
 import com.metadium.result.ServiceResult;
 import com.metadium.result.SignData;
+import com.metadium.result.VpRequestData;
 import com.metaidum.did.resolver.client.DIDResolverAPI;
 import com.metaidum.did.resolver.client.document.DidDocument;
 
@@ -34,6 +37,7 @@ import java.nio.charset.Charset;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -163,6 +167,42 @@ public class MainActivity extends AppCompatActivity {
                 if (result.isSuccess()) {
                     metaId = result.getResult().getMetaId();
                     showToast("MetaId:"+result.getResult().getMetaId()+"\ndid="+result.getResult().getDid()+"\nsignature:"+result.getResult().getSignature()+"\ntransactionId:"+result.getResult().getTransactionId());
+
+                    DidDocument didDocument = DIDResolverAPI.getInstance().getDocument(result.getResult().getDid(), true);
+                    if (didDocument != null) {
+                        try {
+                            if (didDocument.hasRecoverAddressFromSignature(nonce.getBytes(Charset.defaultCharset()), result.getResult().getSignature())) {
+                                showToast("검증성공");
+                            }
+                        }
+                        catch (SignatureException e) {
+                            showToast("검증실패 "+e.toString());
+                        }
+                    }
+                    else {
+                        showToast("Not found did "+result.getResult().getDid());
+                    }
+                }
+                else {
+                    showErrorToast(result.getError());
+                }
+            }
+        });
+    }
+
+    public void onClickVpRequest(View view) {
+        String nonce = getNonce();
+        sdk.requestVp(nonce, "DemoPresentation", new Callback<VpRequestData>() {
+            @Override
+            public void onResult(ServiceResult<VpRequestData> result) {
+                if (result.isSuccess()) {
+                    metaId = result.getResult().getMetaId();
+                    Map<String, String> userData = result.getResult().getUserData();
+                    try {
+                        showToast("did=" + result.getResult().getDid() + "\nsignature:" + result.getResult().getSignature() + "\ntransactionId:" + result.getResult().getTransactionId() + "\nuserData:" + new ObjectMapper().writeValueAsString(userData));
+                    }
+                    catch (JsonProcessingException e) {
+                    }
 
                     DidDocument didDocument = DIDResolverAPI.getInstance().getDocument(result.getResult().getDid(), true);
                     if (didDocument != null) {

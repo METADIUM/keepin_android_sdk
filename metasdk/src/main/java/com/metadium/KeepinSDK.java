@@ -13,11 +13,13 @@ import com.metadium.handler.RegisterKeyHandler;
 import com.metadium.handler.RemoveKeyHandler;
 import com.metadium.handler.ServiceReturnMethodHandler;
 import com.metadium.handler.SignHandler;
+import com.metadium.handler.VpRequestHandler;
 import com.metadium.result.Callback;
 import com.metadium.result.RegisterKeyData;
 import com.metadium.result.RemoveKeyData;
 import com.metadium.result.ReturnCallback;
 import com.metadium.result.SignData;
+import com.metadium.result.VpRequestData;
 
 /**
  * Keepin SDK<br/>
@@ -152,6 +154,16 @@ public class KeepinSDK {
      */
     public void sign(String nonce, boolean autoRegister, Callback<SignData> callback) {
         new SignHandler(context, serviceId, nonce, autoRegister, null, callback).request();
+    }
+
+    /**
+     * Request verifiable credential (user data)
+     * @param nonce    message to sign
+     * @param vpName   verifiable credential to request
+     * @param callback Response callback to request
+     */
+    public void requestVp(String nonce, String vpName, Callback<VpRequestData> callback) {
+        new VpRequestHandler(context, serviceId, nonce, vpName, callback).request();
     }
 
     /**
